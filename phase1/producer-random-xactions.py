@@ -4,6 +4,7 @@ from kafka import KafkaProducer
 import time
 import random
 
+
 class Producer:
     def __init__(self):
         self.producer = KafkaProducer(bootstrap_servers=['localhost:9092'], value_serializer=lambda m: dumps(m).encode('ascii'))
@@ -14,6 +15,7 @@ class Producer:
             'date': int(time.time()),
             'amt': random.randint(10,101)*100,
             }
+
         return data
 
     def depOrWth(self):

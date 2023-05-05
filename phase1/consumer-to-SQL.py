@@ -1,6 +1,25 @@
+import sqlite3
+
 from kafka import KafkaConsumer, TopicPartition
 from json import loads
+from sqlalchemy import create_engine, ForeignKey, Column, String, Integer, CHAR
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
+Base = declarative_base()
+engine = create_engine('sqlite:///transactions.db', echo=True)
+
+Session = sessionmaker(bind=engine)
+db = Session()
+class Transactions(Base):
+    __tablename__ = 'transaction1'
+    # Here we define columns for the table person
+    # Notice that each column is also a normal Python instance attribute.
+    id = Column(Integer, primary_key=True)
+    custid = Column(Integer)
+    type = Column(String(250), nullable=False)
+    date = Column(Integer)
+    amt = Column(Integer)
 class XactionConsumer:
     def __init__(self):
         self.consumer = KafkaConsumer('bank-customer-events',
@@ -16,7 +35,8 @@ class XactionConsumer:
         # THE PROBLEM is every time we re-run the Consumer, ALL our customer
         # data gets lost!
         # add a way to connect to your database here.
-
+        self.connection = sqlite3.connect('transactions.db')
+        self.cur = self.connection.cursor()
         #Go back to the readme.
 
     def handleMessages(self):
@@ -32,7 +52,10 @@ class XactionConsumer:
             else:
                 self.custBalances[message['custid']] -= message['amt']
             print(self.custBalances)
-
+            transactions = Transactions(custid=message['custid'], type=message['type'], date=message['date'], amt=message['amt'])
+            db.add(transactions)
+            db.commit()
+        db.close()
 if __name__ == "__main__":
     c = XactionConsumer()
     c.handleMessages()
