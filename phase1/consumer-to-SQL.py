@@ -8,9 +8,9 @@ from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 engine = create_engine('sqlite:///transactions.db', echo=True)
-
 Session = sessionmaker(bind=engine)
 db = Session()
+
 class Transactions(Base):
     __tablename__ = 'transaction1'
     # Here we define columns for the table person
